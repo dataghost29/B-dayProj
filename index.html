@@ -192,6 +192,19 @@
   /* accept prompt shared */
   .accept-row{ display:flex; gap:1em; margin-top:1.2em; flex-wrap:wrap; justify-content:center; }
 
+  #fireworks-canvas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  #screen-gift1-thanks{ position:absolute; }
+  #screen-gift1-thanks .thanks-heart, #screen-gift1-thanks h2, #screen-gift1-thanks .cake-img{ position:relative; z-index:2; }
+
+  .cake-img{
+    width: clamp(220px, 60vw, 380px);
+    border-radius: 20px;
+    margin-top: 1em;
+    box-shadow: 0 20px 45px rgba(200,120,150,0.45);
+    animation: cakePop 0.7s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes cakePop{ 0%{ transform: scale(0.6); opacity:0; } 100%{ transform: scale(1); opacity:1; } }
+
   .thanks-heart{ font-size: 3rem; animation: heartPop 0.6s ease; }
   @keyframes heartPop{ 0%{ transform:scale(0); } 60%{ transform:scale(1.25);} 100%{ transform:scale(1);} }
 
@@ -262,7 +275,7 @@
 
   /* ---------- bouquet ---------- */
   .bouquet-img{ width: clamp(150px, 36vw, 230px); filter: drop-shadow(0 12px 20px rgba(200,150,180,0.4)); }
-  #btn-bouquet-no{ position:relative; transition: transform 0.25s ease, left 0.25s ease, top 0.25s ease; }
+  #btn-gift1-no{ position:relative; transition: transform 0.25s ease, left 0.25s ease, top 0.25s ease; }
 
   /* ---------- memory wall ---------- */
   .collage-frame{
@@ -326,19 +339,19 @@
 
   <!-- Gift 1b: Accept prompt -->
   <section class="screen" id="screen-gift1-accept">
-    <div class="card">
-      <h2>Please accept my Gift</h2>
-      <div class="accept-row">
-        <button id="btn-gift1-yes">Yes</button>
-        <button class="btn-ghost" id="btn-gift1-no">No</button>
-      </div>
+    <h2>Please accept my Gift</h2>
+    <div class="accept-row">
+      <button id="btn-gift1-yes">Yes</button>
+      <button class="btn-ghost" id="btn-gift1-no">No</button>
     </div>
   </section>
 
   <!-- Gift 1c: Thanks -->
   <section class="screen" id="screen-gift1-thanks">
+    <canvas id="fireworks-canvas"></canvas>
     <div class="thanks-heart">💗</div>
     <h2>Thanks, Motu ❤️</h2>
+    <img class="cake-img" src="cake.png" alt="Birthday cake">
   </section>
 
   <!-- Gift 1d: Angry frog -->
@@ -444,7 +457,12 @@
     "Your Sweet Kisses",
     "Your goofy Talks",
     "You are my safe place",
-    "You are My home"
+    "You are My home",
+    "Your Presence",
+    "The way you care for me",
+    "The Way you hold my Hands",
+    "Your Cute Anger 😠",
+    "You being my fav Person"
   ];
   var cloudsWrap = document.getElementById('clouds-wrap');
   var gift1Timers = [];
@@ -479,13 +497,34 @@
 
   document.getElementById('btn-gift1-yes').addEventListener('click', function(){
     showScreen('screen-gift1-thanks');
+    fireworks();
     setTimeout(function(){ showScreen('screen-gallery'); }, 3000);
   });
-  document.getElementById('btn-gift1-no').addEventListener('click', function(){
-    showScreen('screen-gift1-punch');
-  });
+
+  function fireworks(){
+    var canvas = document.getElementById('fireworks-canvas');
+    if(typeof confetti !== 'function' || !canvas) return;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    var myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+    var duration = 2800;
+    var end = Date.now() + duration;
+    (function frame(){
+      myConfetti({
+        particleCount: 5,
+        startVelocity: 32,
+        spread: 360,
+        ticks: 65,
+        gravity: 0.55,
+        scalar: 1,
+        origin: { x: Math.random(), y: Math.random()*0.5 + 0.05 },
+        colors: ['#ffb3c6','#ffd9e6','#e9e0f8','#ffe3cf','#d9f3e6','#ffffff']
+      });
+      if(Date.now() < end){ requestAnimationFrame(frame); }
+    })();
+  }
   document.getElementById('btn-try-again').addEventListener('click', function(){
-    showScreen('screen-gift1-accept');
+    showScreen('screen-gift2-bouquet');
   });
 
   /* ---------------- Gift 2 flow ---------------- */
@@ -518,23 +557,27 @@
   document.getElementById('btn-bouquet-yes').addEventListener('click', function(){
     showScreen('screen-gallery');
   });
+  document.getElementById('btn-bouquet-no').addEventListener('click', function(){
+    showScreen('screen-gift1-punch');
+  });
 
-  var noBtn = document.getElementById('btn-bouquet-no');
-  function runAway(){
-    var container = document.getElementById('screen-gift2-bouquet');
+  /* Runaway "No" button on the accept-gift prompt */
+  var gift1NoBtn = document.getElementById('btn-gift1-no');
+  function runAway(btn, containerId){
+    var container = document.getElementById(containerId);
     var rect = container.getBoundingClientRect();
-    var btnW = noBtn.offsetWidth || 100;
-    var btnH = noBtn.offsetHeight || 50;
+    var btnW = btn.offsetWidth || 100;
+    var btnH = btn.offsetHeight || 50;
     var maxX = Math.max(rect.width - btnW - 20, 20);
     var maxY = Math.max(rect.height - btnH - 20, 20);
     var x = Math.random()*maxX;
     var y = Math.random()*maxY;
-    noBtn.style.position = 'absolute';
-    noBtn.style.left = x + 'px';
-    noBtn.style.top = y + 'px';
+    btn.style.position = 'absolute';
+    btn.style.left = x + 'px';
+    btn.style.top = y + 'px';
   }
-  noBtn.addEventListener('mouseenter', runAway);
-  noBtn.addEventListener('touchstart', function(e){ e.preventDefault(); runAway(); }, {passive:false});
+  gift1NoBtn.addEventListener('mouseenter', function(){ runAway(gift1NoBtn, 'screen-gift1-accept'); });
+  gift1NoBtn.addEventListener('touchstart', function(e){ e.preventDefault(); runAway(gift1NoBtn, 'screen-gift1-accept'); }, {passive:false});
 
   /* ---------------- Gift 3 flow ---------------- */
   document.getElementById('gift-3').addEventListener('click', function(){
