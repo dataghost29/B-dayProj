@@ -273,6 +273,14 @@
   }
   .letter-full.show{ opacity:1; transform: translateY(0); }
 
+  .btn-continue-letter{
+    margin-top: 1.4em;
+    opacity:0;
+    visibility:hidden;
+    transition: opacity 0.6s ease, visibility 0.6s;
+  }
+  .btn-continue-letter.show{ opacity:1; visibility:visible; }
+
   /* ---------- bouquet ---------- */
   .bouquet-img{ width: clamp(150px, 36vw, 230px); filter: drop-shadow(0 12px 20px rgba(200,150,180,0.4)); }
   #btn-gift1-no{ position:relative; transition: transform 0.25s ease, left 0.25s ease, top 0.25s ease; }
@@ -291,6 +299,19 @@
   }
 
   .back-btn{ margin-top:1.4em; }
+
+  .music-toggle{
+    margin-top: 1.2em;
+    background: #fff;
+    color: var(--accent-deep);
+    border: 2px solid var(--blush);
+    box-shadow: var(--shadow);
+  }
+  .music-toggle.playing{
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    color:#fff;
+    border-color: transparent;
+  }
 
   .hidden{ display:none !important; }
 
@@ -373,6 +394,7 @@
     <div class="letter-full" id="letter-full">
       If I could give you one gift, It would be the ability to see yourself through my eyes. Only then would you realize how truly Special YOU are... You light up my life with your every word, smile and laugh. You are the best thing to ever happen to me and I love you more than words can express.. For Ever and Always... Yours Truly....... Vyas
     </div>
+    <button class="btn-continue-letter" id="btn-continue-letter">Continue 💌</button>
   </section>
 
   <!-- Gift 2b: Bouquet -->
@@ -391,6 +413,8 @@
     <div class="collage-frame">
       <img src="collage.png" alt="Memory collage">
     </div>
+    <button class="music-toggle" id="btn-music-toggle" aria-label="Play or pause song">🎵 Play our song</button>
+    <audio id="memory-audio" src="memory-song.mp3" loop preload="none"></audio>
     <button class="back-btn" id="btn-back-gift3">Back to gifts</button>
   </section>
 
@@ -530,11 +554,13 @@
   /* ---------------- Gift 2 flow ---------------- */
   var envelope = document.getElementById('envelope');
   var letterFull = document.getElementById('letter-full');
+  var continueBtn = document.getElementById('btn-continue-letter');
 
   document.getElementById('gift-2').addEventListener('click', function(){
     envelope.classList.remove('open');
     letterFull.classList.remove('show');
     letterFull.style.display = 'none';
+    continueBtn.classList.remove('show');
     envelope.style.display = '';
     document.getElementById('gift2-heading').style.display = '';
     showScreen('screen-gift2-letter');
@@ -549,9 +575,13 @@
       letterFull.style.display = 'block';
       requestAnimationFrame(function(){ letterFull.classList.add('show'); });
       setTimeout(function(){
-        showScreen('screen-gift2-bouquet');
-      }, 2000);
+        continueBtn.classList.add('show');
+      }, 900);
     }, 750);
+  });
+
+  document.getElementById('btn-continue-letter').addEventListener('click', function(){
+    showScreen('screen-gift2-bouquet');
   });
 
   document.getElementById('btn-bouquet-yes').addEventListener('click', function(){
@@ -582,9 +612,36 @@
   /* ---------------- Gift 3 flow ---------------- */
   document.getElementById('gift-3').addEventListener('click', function(){
     showScreen('screen-gift3');
+    var audio = document.getElementById('memory-audio');
+    audio.currentTime = 0;
+    audio.play().then(function(){
+      musicToggle.classList.add('playing');
+      musicToggle.textContent = '🎵 Playing...';
+    }).catch(function(){
+      musicToggle.classList.remove('playing');
+      musicToggle.textContent = '🎵 Play our song';
+    });
   });
   document.getElementById('btn-back-gift3').addEventListener('click', function(){
+    var audio = document.getElementById('memory-audio');
+    audio.pause();
+    musicToggle.classList.remove('playing');
+    musicToggle.textContent = '🎵 Play our song';
     showScreen('screen-gallery');
+  });
+
+  var musicToggle = document.getElementById('btn-music-toggle');
+  musicToggle.addEventListener('click', function(){
+    var audio = document.getElementById('memory-audio');
+    if(audio.paused){
+      audio.play();
+      musicToggle.classList.add('playing');
+      musicToggle.textContent = '🎵 Playing...';
+    } else {
+      audio.pause();
+      musicToggle.classList.remove('playing');
+      musicToggle.textContent = '🎵 Play our song';
+    }
   });
 
 })();
